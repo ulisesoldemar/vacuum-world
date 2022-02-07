@@ -1,54 +1,55 @@
-from world import *
+from environment import Environment
+from actions import *
+from random import choice
 
 
 class Agent:
-    def __init__(self, x_pos: int, y_pos: int, world: World) -> None:
-        # attributes
+    def __init__(self,
+                 x_pos: int = 0, y_pos: int = 0,) -> None:
+        self.dirty = False  # Bandera de suciedad en cuarto
         self.x = x_pos
         self.y = y_pos
-        self.world = world
-        self.visited = set()
-        # counters
-        self.score = 0
-        self.rooms_left = world.dirty_rooms
-        self.rooms_cleaned = 0
-        # initial room
-        self.visited.add((self.x, self.y))
+        self.valid_moves = set()
 
-    def possible_steps(self) -> list:
-        # potential movements
-        allowed = []
-        # verification
-        if self.world.layout[self.y][self.x]:
-            allowed.append(CLEAN)
-        if self.y-1 >= 0:
-            allowed.append(UP)
-        if self.y+1 < self.world.rows:
-            allowed.append(DOWN)
+    # Sensor del ambiente
+    def perceive(self, env: Environment) -> None:
+        self.dirty = env.dirt_amount(self.x, self.y) > 0
+        self.valid_moves.clear()
         if self.x-1 >= 0:
-            allowed.append(LEFT)
-        if self.x+1 < self.world.cols:
-            allowed.append(RIGHT)
-        # return potential movements
-        return allowed
+            self.valid_moves.add(UP)
+        if self.x+1 < env.rows:
+            self.valid_moves.add(DOWN)
+        if self.y-1 >= 0:
+            self.valid_moves.add(LEFT)
+        if self.y+1 < env.cols:
+            self.valid_moves.add(RIGHT)
+    
+    # Decide la siguiente acción
+    def think(self) -> str:
+        return SUCK if self.dirty else choice(list(self.valid_moves))
 
-    def perform_action(self, action: str) -> None:
-        print((self.x, self.y), action)
-        if action == CLEAN:
-            self.world.layout[self.y][self.x] = 0
-            self.score += 10
-            self.rooms_left -= 1
+    # Realiza la acción en base a su información
+    def action(self, action: str, env: Environment) -> None:
+        if action == SUCK:
+            env.layout[self.x][self.y] -= 1
+            env.total_dirt -= 1
         elif action == UP:
-            self.y -= 1
-            self.score -= 1
-        elif action == DOWN:
-            self.y += 1
-            self.score -= 1
-        elif action == LEFT:
             self.x -= 1
-            self.score -= 1
-        elif action == RIGHT:
+        elif action == DOWN:
             self.x += 1
-            self.score -= 1
-        # save room
-        self.visited.add((self.x, self.y))
+        elif action == LEFT:
+            self.y -= 1
+        elif action == RIGHT:
+            self.y += 1
+    
+    def do_step(self, env: Environment) -> None:
+        self.perceive(env)
+        action = self.think()
+        self.action(action)
+    
+    def clean(self, env: Environment):
+        while env.total_dirt:
+            self.do_step(env)
+
+
+
