@@ -1,10 +1,9 @@
-from copy import copy, deepcopy
+from copy import deepcopy
 from environment import Environment
 from evaluator import Evaluator
 from actions import *
 from random import choice
 from json import *
-import time
 
 
 class Agent:
