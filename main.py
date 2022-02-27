@@ -24,8 +24,16 @@ def show(args: argparse.Namespace) -> None:
         agent = AgentState(env, args.x, args.y)
     elif args.agent == 'penalized':
         agent = AgentPenalized(env, args.x, args.y)
-    agent.clean_room()
-    pprint(agent.log, sort_dicts=False)
+    else:
+        print('no se reconce el tipo de agente. valores aceptados simple (default), state y penalized')
+        return
+
+    try:
+        agent.clean_room()
+        pprint(agent.log, sort_dicts=False)
+    except IndexError:
+        print('los valores de x y y deben estar en los límites del layout del archivo:')
+        pprint(env.layout)
 
 if __name__ == '__main__':
     main()
