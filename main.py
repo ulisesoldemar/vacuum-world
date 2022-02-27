@@ -1,40 +1,33 @@
+#!/usr/bin/python
+
 from agent import Agent
+from agent_penalized import AgentPenalized
 from agent_state import AgentState
 from environment import Environment
-from evaluator import Evaluator
-from random import randint
-from time import sleep
-from os import system
-
+from pprint import pprint
+import argparse
 
 def main() -> None:
-    try:
-        filename = 'data.json'
-        with open(filename, 'r') as file:
-            env = Environment.from_json(file)
-    except FileNotFoundError:
-        print('No se encontró el archivo {}. Se generará un entorno aleatorio.'.format(
-            filename))
-        rows = randint(1, 5)
-        cols = randint(1, 5)
-        env = Environment(rows, cols)
-    finally:
-        agent = AgentState()
-        evl = Evaluator()
-        while env.total_dirt:
-            system('clear')
-            env.show()
-            print('Agent position: ', (agent.x, agent.y), end='\t| ')
-            agent.perceive(env)
-            agent.not_visited()
-            action = agent.think()
-            print('Action: ', action)
-            agent.action(action, env)
-            evl.eval(action, env)
-            print('Consumed energy: ', evl.consumed_energy, end='\t| ')
-            print('Dirty degree: ', evl.dirty_degree)
-            sleep(0.5)
+    parser = argparse.ArgumentParser(description='Mundo de la aspiradora.')
+    parser.add_help()
+    parser.add_argument('FILE', type=str, help='archivo con el layout del mundo en formato JSON')
+    parser.add_argument('-x', type=int, help='posición en x de la aspiradora', default=0)
+    parser.add_argument('-y', type=int, help='posición en y de la aspiradora', default=0)
+    parser.add_argument('--agent', type=str, help='tipo de agente; valores aceptados simple (default), state y penalized', default='simple')
+    args = parser.parse_args()
+    show(args)
 
+def show(args: argparse.Namespace) -> None:
+    env = Environment.load_layout(args.FILE)
+    if args.agent == 'simple':
+        agent = Agent(env, args.x, args.y)
+    elif args.agent == 'state':
+        agent = AgentState(env, args.x, args.y)
+    elif args.agent == 'penalized':
+        agent = AgentPenalized(env, args.x, args.y)
+    agent.clean_room()
+    pprint(agent.log, sort_dicts=False)
 
 if __name__ == '__main__':
     main()
+    
