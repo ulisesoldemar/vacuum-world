@@ -9,7 +9,6 @@ import argparse
 
 def main() -> None:
     parser = argparse.ArgumentParser(description='Mundo de la aspiradora.')
-    parser.add_help()
     parser.add_argument('FILE', type=str, help='archivo con el layout del mundo en formato JSON')
     parser.add_argument('-x', type=int, help='posición en x de la aspiradora', default=0)
     parser.add_argument('-y', type=int, help='posición en y de la aspiradora', default=0)
