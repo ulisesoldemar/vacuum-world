@@ -1,7 +1,7 @@
 from agent import Agent
 from environment import Environment
 from actions import *
-
+from evaluator import Evaluator
 
 class AgentPenalized(Agent):
     def __init__(self,
@@ -29,5 +29,22 @@ class AgentPenalized(Agent):
         self.moves += 1
 
     def clean_room(self) -> None:
-        super().clean_room()
+        evl = Evaluator()
+        evl.start()
+        while self.env.total_dirt and self.energy:
+            self.perceive()
+            action = self.think()
+            self.action(action)
+            evl.eval(action)
+        total_time = evl.stop()
+
+        self.log['Final layout'] = self.env.layout
+        self.log['Total moves'] = self.moves
+        self.log['Agent score'] = self.score
+        self.log['Total time'] = total_time
+        self.log['Consumed energy'] = evl.consumed_energy
+        if self.energy > 0:
+            self.log['Performance'] = self.score / evl.consumed_energy
+        else:
+            self.log['Performance'] = -1
         self.log['Energy left'] = self.energy
